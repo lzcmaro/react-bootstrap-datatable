@@ -1,2 +1,2 @@
-# react-bootstrap-datatable
+# react-bootstrap-table
 It's a react table for bootstrap
