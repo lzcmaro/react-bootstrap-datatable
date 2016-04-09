@@ -1,4 +1,4 @@
-import React, {PropTypes, cloneElement, createFactory} from 'react'
+import React, {PropTypes, cloneElement, createFactory, isValidElement} from 'react'
 import classnames from 'classnames'
 
 class DataView extends React.Component {
@@ -95,39 +95,57 @@ class DataView extends React.Component {
 	renderTableBodyForRowTemplate() {
 		const {serialNumber, fields, data, template, rowTemplate, emptyText} = this.props
 		
+		//校验模板是否为 <tr><td></td></tr> 格式
 		if(rowTemplate.type !== 'tr'){
 			throw 'Error. 行模板 {rowTemplate} 必须为<tr><td></td></tr>元素'
 		}
 
 		const tds = rowTemplate.props.children
 
-		if(tds && tds.length > 0){
+		//校验模板中，其TD数量是否和fields长度一致
+		if(!tds || tds.length !== fields.length){
+			throw 'Error. 模板的列数必须和属性 {fields} 对应上'
+		}
 
-			if(tds.length !== fields.length){
-				throw 'Error. 模板的列数必须和属性 {fields} 对应上'
+		tds.forEach(td => {
+			if(td.type !== 'td'){
+				throw 'Error. 行模板 {rowTemplate} 必须为<tr><td></td></tr>元素'
 			}
+		})
 
-			tds.forEach(td => {
-				if(td.type !== 'td'){
-					throw 'Error. 行模板 {rowTemplate} 必须为<tr><td></td></tr>元素'
-				}
-			})
-
+		//当TD的children为string时，把数据占位符%%替换成真实数据
+		const getColumnChildren = (child, data) => {
+			if(typeof child === 'string'){
+				return child.replace(/%\w*%/g, (key) => {
+						return data[key.replace(/%/g, '')] || ''
+					})
+			}
+			return child
 		}
 
 
 		return (
 			<tbody>
-				{data.map((item, rowIndex) => 
+				{data.map((dataItem, rowIndex) => 
 					<tr key={'row' + rowIndex}>
 						{serialNumber ? <td key="no">{++rowIndex}</td> : null}
 						{fields.map((field, colIndex) => { 
 							
-							const { children, otherProps } = tds[colIndex].props
+							const { children, childrenNode, otherProps } = tds[colIndex].props
 
-							//TODO: children可能会是个element，这里需要遍历children，直到它是string，然后把数据占位符%name%替换成真实数据后，再放回到td中
+							if(field.idField === true){ //idField为ID标识列，这里直接返回null，暂不作其它处理
+								return null
+							}
 
-							return field.idField ? null : <td {...otherProps} key={field.name || 'custom-column'}>{children}</td>
+							if(childrenNode && typeof childrenNode !== 'function'){
+								throw 'Error. TD的属性 {childrenNode} 必须为function'
+							}
+
+							//如果该列传递了childrenNode，直接调用它得到TD的children
+							return (
+								<td {...otherProps} key={field.name || 'custom-column'}>{childrenNode ? childrenNode(dataItem || {}) : getColumnChildren(children, dataItem || {})}</td>
+							)
+
 						})}
 					</tr>
 				)}

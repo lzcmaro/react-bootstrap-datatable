@@ -49,26 +49,37 @@ class DataViewExample extends Component {
 			createDate: '2011-01-01'
 		}];
 
-		const template = null;
-
+		//模板中，如果td的children仅为string时，其使用的%%数据占位符才会被自动替换成真实数据
 		const rowTemplate = (
 			<tr>
 				<td>%id%</td>
-				<td><span>%name%</span></td>
-				<td>%price%</td>
+				<td childrenNode={(rowData) => this.renderNameColumn(rowData)}></td>
+				<td>价格：%price%</td>
 				<td>%createDate%</td>
-				<td><a href="javascript:;" onClick={() => console.log('deleting')}>Delete</a></td>
+				<td childrenNode={(rowData) => this.renderCustomColumn(rowData)}></td>
 			</tr>
 		);
   	
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
-    		<DataTable striped hover serialNumber fields={fields} data={products} template={template} rowTemplate={rowTemplate}>
+    		<DataTable striped hover serialNumber fields={fields} data={products} rowTemplate={rowTemplate}>
     			
     		</DataTable>
     	</div>      
     );
+  }
+
+  renderNameColumn(rowData) {
+  	return (
+  		<span style={{color: 'red'}}>{rowData.name}</span>
+  	)
+  }
+
+  renderCustomColumn(rowData) {
+  	return (
+  		<a href="javascript:;" onClick={() => console.log('deleting', rowData.id)}>Delete</a>
+  	)
   }
 }
 
