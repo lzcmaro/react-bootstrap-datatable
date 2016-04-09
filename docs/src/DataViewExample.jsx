@@ -24,7 +24,8 @@ class DataViewExample extends Component {
   		type: 'date',
   		dateFormat: 'YYYY-MM-DD'
   	}, {
-  		text: 'Custom Column'
+  		text: 'Custom Column',
+  		value: 'column'
   	}];
 
   	const products = [{
@@ -63,9 +64,7 @@ class DataViewExample extends Component {
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
-    		<DataTable striped hover serialNumber fields={fields} data={products} rowTemplate={rowTemplate}>
-    			
-    		</DataTable>
+    		<DataTable striped hover serialNumber serialNumberHead={'No.'} fields={fields} data={products} rowTemplate={rowTemplate} />
     	</div>      
     );
   }

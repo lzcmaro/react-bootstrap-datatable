@@ -1,24 +1,20 @@
 import React, {PropTypes, cloneElement, createFactory, isValidElement} from 'react'
 import classnames from 'classnames'
 
-class DataView extends React.Component {
-	constructor(props) {
-		super(props)
-
-	}
+class DataTable extends React.Component {
 
 	render() {
 		return (
-			<div className="data-view-wapper">
-				{this.renderDataView()}
+			<div className="data-table-wapper">
+				{this.renderDataTable()}
 			</div>
 		)
 	}
 
-	renderDataView() {
+	renderDataTable() {
     const {striped, bordered, hover, serialNumber, fields, data, template, rowTemplate, children, ...otherProps} = this.props
     let classes = {
-			'data-view': true,
+			'data-table': true,
       'table': true,
       'table-striped': striped,
       'table-bordered': bordered,
@@ -46,7 +42,7 @@ class DataView extends React.Component {
 		return (
 			<thead>
 				<tr>
-					{serialNumber ? <th key="no">序号</th> : null}
+					{serialNumber ? <th key="no" width={50}>{this.props.serialNumberHead}</th> : null}
 					{fields.map(field => 
 						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
 					)}
@@ -72,7 +68,7 @@ class DataView extends React.Component {
 					<tr key={'row' + index}>
 						{serialNumber ? <td key="no">{++index}</td> : null}
 						{fields.map(field => 
-							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || 'aaa'}</td>
+							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
 						)}
 					</tr>
 				)}
@@ -163,7 +159,7 @@ class DataView extends React.Component {
 
 }
 
-DataView.propTypes = {
+DataTable.propTypes = {
 	/**
 	 * 是否隔行着色
 	 */
@@ -183,21 +179,21 @@ DataView.propTypes = {
   /**
    * 序号列头显示的TEXT
    */
-  // serialNumberText: PropTypes.string,
+  serialNumberHead: PropTypes.string,
   /**
    * 用于解析data数据的field标识
    */
   fields: PropTypes.array.isRequired,
   /**
-   * 用于生成DataView的源数据
+   * 用于生成DataTable的源数据
    */
   data: PropTypes.array,
   /**
-   * 用于生成DataView的模板（所有TBODY的行）
+   * 用于生成DataTable的模板（所有TBODY的行）
    */
   template: PropTypes.element,
   /**
-   * 用于生成DataView的行模板
+   * 用于生成DataTable的行模板
    */
   rowTemplate: PropTypes.element,
   /**
@@ -206,12 +202,13 @@ DataView.propTypes = {
   emptyText: PropTypes.string
 }
 
-DataView.defaultProps = {
+DataTable.defaultProps = {
 	striped: false,
 	bordered: true,
 	hover: false,
 	serialNumber: false,
+	serialNumberHead: '序号',
 	emptyText: '没有可显示的数据'
 }
 
-export default DataView
+export default DataTable
