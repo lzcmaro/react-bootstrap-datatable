@@ -1,8 +1,6 @@
 import {extend} from 'lodash';
 import baseConfig from './base.config';
 import webpack from 'webpack';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
-
 
 baseConfig.plugins.push( 
   new webpack.DefinePlugin({
@@ -19,7 +17,7 @@ export default extend({}, baseConfig, {
 	entry: {
     main: [
       'webpack-hot-middleware/client',
-      './src/index'
+      './docs/index'
     ],
     vendor: ['react', 'react-dom']
   }

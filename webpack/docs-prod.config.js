@@ -1,8 +1,6 @@
 import {extend} from 'lodash';
 import baseConfig from './base.config';
 import webpack from 'webpack';
-import ExtractTextPlugin from 'extract-text-webpack-plugin';
-
 
 baseConfig.plugins.push( 
   new webpack.DefinePlugin({
@@ -22,7 +20,7 @@ baseConfig.plugins.push(
 export default extend({}, baseConfig, {
 	entry: {
     main: [
-      './src/index'
+      './docs/index'
     ],
     vendor: ['react', 'react-dom']
   }

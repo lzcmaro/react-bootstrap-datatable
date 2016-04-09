@@ -1,3 +1,3 @@
 require('babel-core/register');
-var config = require('./webpack/dev.config').default;
+var config = require('./webpack/docs.config').default;
 module.exports = config;
