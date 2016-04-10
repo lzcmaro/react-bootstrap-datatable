@@ -9,7 +9,7 @@ class DataViewExample extends Component {
 
   render() {
 
-  	const fields = [{
+  	const dataField = [{
   		idField: true,
   		name: 'id'
   	}, {
@@ -64,7 +64,7 @@ class DataViewExample extends Component {
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
-    		<DataTable striped hover serialNumber serialNumberHead={'No.'} fields={fields} data={products} rowTemplate={rowTemplate} />
+    		<DataTable striped hover serialNumber serialNumberHead={'No.'} dataField={dataField} data={products} rowTemplate={rowTemplate} />
     	</div>      
     );
   }

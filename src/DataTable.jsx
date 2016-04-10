@@ -12,7 +12,7 @@ class DataTable extends React.Component {
 	}
 
 	renderDataTable() {
-    const {striped, bordered, hover, serialNumber, fields, data, template, rowTemplate, children, ...otherProps} = this.props
+    const {striped, bordered, hover, serialNumber, dataField, data, template, rowTemplate, children, ...otherProps} = this.props
     let classes = {
 			'data-table': true,
       'table': true,
@@ -21,8 +21,8 @@ class DataTable extends React.Component {
       'table-hover': hover
     }
 
-    if(!fields || !Array.isArray(fields) || fields.length <= 0){
-			throw 'Error. 属性 {fields} 必传，且为数组。'
+    if(!dataField || !Array.isArray(dataField) || dataField.length <= 0){
+			throw 'Error. 属性 {dataField} 必传，且为数组。'
 		}
 
 		return (
@@ -37,13 +37,13 @@ class DataTable extends React.Component {
 	}
 
 	renderTableHead() {
-		const {serialNumber, fields} = this.props
+		const {serialNumber, dataField} = this.props
 
 		return (
 			<thead>
 				<tr>
 					{serialNumber ? <th key="no" width={50}>{this.props.serialNumberHead}</th> : null}
-					{fields.map(field => 
+					{dataField.map(field => 
 						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
 					)}
 				</tr>
@@ -52,7 +52,7 @@ class DataTable extends React.Component {
 	}
 
 	renderTableBody() {
-		const {serialNumber, fields, data, template, rowTemplate, emptyText} = this.props
+		const {serialNumber, dataField, data, template, rowTemplate, emptyText} = this.props
 
 		if(!data || !Array.isArray(data) || data.length <= 0){
 			return this.renderEmptyText()
@@ -67,7 +67,7 @@ class DataTable extends React.Component {
 				{data.map((item, index) => 
 					<tr key={'row' + index}>
 						{serialNumber ? <td key="no">{++index}</td> : null}
-						{fields.map(field => 
+						{dataField.map(field => 
 							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
 						)}
 					</tr>
@@ -77,7 +77,7 @@ class DataTable extends React.Component {
 	}
 
 	renderEmptyText() {
-		let cols = this.props.fields.length
+		let cols = this.props.dataField.length
 			
 		serialNumber && ++cols
 
@@ -89,7 +89,7 @@ class DataTable extends React.Component {
 	}
 
 	renderTableBodyForRowTemplate() {
-		const {serialNumber, fields, data, template, rowTemplate, emptyText} = this.props
+		const {serialNumber, dataField, data, template, rowTemplate, emptyText} = this.props
 		
 		//校验模板是否为 <tr><td></td></tr> 格式
 		if(rowTemplate.type !== 'tr'){
@@ -98,9 +98,9 @@ class DataTable extends React.Component {
 
 		const tds = rowTemplate.props.children
 
-		//校验模板中，其TD数量是否和fields长度一致
-		if(!tds || tds.length !== fields.length){
-			throw 'Error. 模板的列数必须和属性 {fields} 对应上'
+		//校验模板中，其TD数量是否和dataField长度一致
+		if(!tds || tds.length !== dataField.length){
+			throw 'Error. 模板的列数必须和属性 {dataField} 对应上'
 		}
 
 		tds.forEach(td => {
@@ -125,7 +125,7 @@ class DataTable extends React.Component {
 				{data.map((dataItem, rowIndex) => 
 					<tr key={'row' + rowIndex}>
 						{serialNumber ? <td key="no">{++rowIndex}</td> : null}
-						{fields.map((field, colIndex) => { 
+						{dataField.map((field, colIndex) => { 
 							
 							const { children, childrenNode, otherProps } = tds[colIndex].props
 
@@ -183,7 +183,7 @@ DataTable.propTypes = {
   /**
    * 用于解析data数据的field标识
    */
-  fields: PropTypes.array.isRequired,
+  dataField: PropTypes.array.isRequired,
   /**
    * 用于生成DataTable的源数据
    */
