@@ -1,18 +1,53 @@
 import React, {PropTypes, cloneElement, createFactory, isValidElement} from 'react'
 import classnames from 'classnames'
 
+import DataStore from './dataStore'
+import Pagination, { getActivePage } from './Pagination'
+import Constants from './constants'
+
 class DataTable extends React.Component {
+	
+	constructor(props) {
+		super(props)
+
+		const paginationProps = this.getPaginationProps(props)
+		const currPage = getActivePage(paginationProps)
+
+		this.store = new DataStore(props.data, {
+			pagination: !!props.pagination,
+			currPage: currPage,
+			pageSize: paginationProps.pageSize,
+			remote: !!paginationProps.remote
+		})
+		this.state = {
+			data: this.store.get(),
+			currPage: currPage
+		}
+	}
+
+	componentWillReceiveProps(nextProps) {
+		const paginationProps = this.getPaginationProps(nextProps)
+		const currPage = getActivePage(paginationProps)
+
+		nextProps.data && this.store.set(nextProps.data)
+
+		this.setState({
+			data: this.store.setPage(currPage).get(),
+			currPage: currPage
+		})
+	}
 
 	render() {
 		return (
 			<div className="data-table-wapper">
 				{this.renderDataTable()}
+				{this.props.pagination ? this.renderPagination() : null}
 			</div>
 		)
 	}
 
 	renderDataTable() {
-    const {striped, bordered, hover, serialNumber, dataField, data, template, rowTemplate, children, ...otherProps} = this.props
+    const {striped, bordered, hover, serialNumber, dataFields, data, template, rowTemplate, children, ...otherProps} = this.props
     let classes = {
 			'data-table': true,
       'table': true,
@@ -21,8 +56,8 @@ class DataTable extends React.Component {
       'table-hover': hover
     }
 
-    if(!dataField || !Array.isArray(dataField) || dataField.length <= 0){
-			throw 'Error. 属性 {dataField} 必传，且为数组。'
+    if(!dataFields || !Array.isArray(dataFields) || dataFields.length <= 0){
+			throw 'Error. 属性 {dataFields} 必传，且为数组。'
 		}
 
 		return (
@@ -37,13 +72,13 @@ class DataTable extends React.Component {
 	}
 
 	renderTableHead() {
-		const {serialNumber, dataField} = this.props
+		const {serialNumber, dataFields} = this.props
 
 		return (
 			<thead>
 				<tr>
 					{serialNumber ? <th key="no" width={50}>{this.props.serialNumberHead}</th> : null}
-					{dataField.map(field => 
+					{dataFields.map(field => 
 						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
 					)}
 				</tr>
@@ -52,7 +87,8 @@ class DataTable extends React.Component {
 	}
 
 	renderTableBody() {
-		const {serialNumber, dataField, data, template, rowTemplate, emptyText} = this.props
+		const {serialNumber, dataFields, template, rowTemplate, emptyText} = this.props
+		const data = this.state.data
 
 		if(!data || !Array.isArray(data) || data.length <= 0){
 			return this.renderEmptyText()
@@ -67,7 +103,7 @@ class DataTable extends React.Component {
 				{data.map((item, index) => 
 					<tr key={'row' + index}>
 						{serialNumber ? <td key="no">{++index}</td> : null}
-						{dataField.map(field => 
+						{dataFields.map(field => 
 							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
 						)}
 					</tr>
@@ -77,7 +113,8 @@ class DataTable extends React.Component {
 	}
 
 	renderEmptyText() {
-		let cols = this.props.dataField.length
+		const { dataFields, serialNumber, emptyText } = this.props
+		let cols = dataFields.length
 			
 		serialNumber && ++cols
 
@@ -89,22 +126,23 @@ class DataTable extends React.Component {
 	}
 
 	renderTableBodyForRowTemplate() {
-		const {serialNumber, dataField, data, template, rowTemplate, emptyText} = this.props
+		const { serialNumber, dataFields, rowTemplate } = this.props
+		const data = this.state.data
 		
 		//校验模板是否为 <tr><td></td></tr> 格式
 		if(rowTemplate.type !== 'tr'){
 			throw 'Error. 行模板 {rowTemplate} 必须为<tr><td></td></tr>元素'
 		}
 
-		const tds = rowTemplate.props.children
+		const cells = rowTemplate.props.children
 
-		//校验模板中，其TD数量是否和dataField长度一致
-		if(!tds || tds.length !== dataField.length){
-			throw 'Error. 模板的列数必须和属性 {dataField} 对应上'
+		//校验模板中，其TD数量是否和dataFields长度一致
+		if(!cells || cells.length !== dataFields.length){
+			throw 'Error. 模板的列数必须和属性 {dataFields} 对应上'
 		}
 
-		tds.forEach(td => {
-			if(td.type !== 'td'){
+		cells.forEach(cell => {
+			if(cell.type !== 'td'){
 				throw 'Error. 行模板 {rowTemplate} 必须为<tr><td></td></tr>元素'
 			}
 		})
@@ -130,9 +168,9 @@ class DataTable extends React.Component {
 					<tr key={'row' + rowIndex}>
 						{serialNumber ? <td key="no">{++rowIndex}</td> : null}
 
-						{dataField.map((field, colIndex) => {
+						{dataFields.map((field, cellIndex) => {
 							
-							const { children, childrenNode, otherProps } = tds[colIndex].props
+							const { children, childrenNode, otherProps } = cells[cellIndex].props
 
 							if(field.idField === true){ //idField为ID标识列，这里直接返回null，暂不作其它处理
 								return null
@@ -155,12 +193,31 @@ class DataTable extends React.Component {
 		)
 	}
 
-	renderTableFoot() {
+	renderPagination() {
 		return (
-			<tfoot>
-				<tr><td></td></tr>
-			</tfoot>
+			<Pagination
+        {...this.props.pagination}
+        activePage={this.state.currPage}
+        onChangePage={this.onChangePage.bind(this)} />
 		)
+	}
+
+	onChangePage(event, selectedEvent) {
+		//TODO: 后台分页
+		if(this.store.remote){
+
+		}
+
+		const currPage = selectedEvent.eventKey
+
+    this.setState({
+    	data: this.store.setPage(currPage).get(),
+    	currPage: currPage
+    })
+	}
+
+	getPaginationProps(props) {
+		return (props || this.props).pagination || Pagination.defaultProps
 	}
 
 }
@@ -189,7 +246,7 @@ DataTable.propTypes = {
   /**
    * 用于解析data数据的field标识
    */
-  dataField: PropTypes.array.isRequired,
+  dataFields: PropTypes.array.isRequired,
   /**
    * 用于生成DataTable的源数据
    */
@@ -205,7 +262,14 @@ DataTable.propTypes = {
   /**
    * 没有数据时，显示的提示信息
    */
-  emptyText: PropTypes.string
+  emptyText: PropTypes.string,
+  /**
+   * 是否添加分页
+   */
+  pagination: PropTypes.oneOfType([
+  		PropTypes.bool,
+  		PropTypes.object
+  	])
 }
 
 DataTable.defaultProps = {
@@ -213,8 +277,9 @@ DataTable.defaultProps = {
 	bordered: true,
 	hover: false,
 	serialNumber: false,
-	serialNumberHead: '序号',
-	emptyText: '没有可显示的数据'
+	serialNumberHead: Constants.SN_HEAD_TEXT,
+	emptyText: Constants.EMPTY_TEXT,
+	pagination: false
 }
 
 export default DataTable

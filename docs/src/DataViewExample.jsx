@@ -9,7 +9,7 @@ class DataViewExample extends Component {
 
   render() {
 
-  	const dataField = [{
+  	const dataFields = [{
   		idField: true,
   		name: 'id'
   	}, {
@@ -28,27 +28,11 @@ class DataViewExample extends Component {
   		value: 'column'
   	}];
 
-  	const products = [{
-			id: 1,
-			name: 'Product1',
-			price: 101,
-			createDate: '2011-01-01'
-		}, {
-			id: 2,
-			name: 'Product2',
-			price: 102,
-			createDate: '2011-01-01'
-		}, {
-			id: 3,
-			name: 'Product3',
-			price: 103,
-			createDate: '2011-01-01'
-		}, {
-			id: 4,
-			name: 'Product4',
-			price: 104,
-			createDate: '2011-01-01'
-		}];
+  	const products = [];
+
+    for (var i = 0; i < 101; i++) {
+      products.push({id: i, name: ('Product' + i), price: (100 + i), createDate: '2011-01-01'})
+    };
 
 		const rowTemplate = (
 			<tr>
@@ -63,7 +47,15 @@ class DataViewExample extends Component {
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
-    		<DataTable striped hover serialNumber serialNumberHead={'No.'} dataField={dataField} data={products} rowTemplate={rowTemplate} />
+    		<DataTable 
+          striped 
+          hover 
+          serialNumber 
+          serialNumberHead={'No.'} 
+          dataFields={dataFields} 
+          data={products} 
+          rowTemplate={rowTemplate} 
+          pagination={{remote: false, activePage: 1, pageSize: 10, total: products.length, showTotalText: true, maxButtons: 5}} />
     	</div>      
     );
   }
