@@ -109,23 +109,28 @@ class DataTable extends React.Component {
 			}
 		})
 
-		//当TD的children为string时，把数据占位符%%替换成真实数据
-		const getColumnChildren = (child, data) => {
+		const renderChildrenNode = (parent, child, data) => {
 			if(typeof child === 'string'){
+				//当children为string时，把数据占位符%%替换成真实数据
 				return child.replace(/%\w*%/g, (key) => {
 						return data[key.replace(/%/g, '')] || ''
-					})
+					})			
+			}else if(isValidElement(child)){
+				//child为element时，递归调用renderChildrenNode，对所有children的%%数据占位符替换成真实数据。然后return clone后的element
+				let node = renderChildrenNode(child, child.props.children, data)
+				return cloneElement(child, {children: node})
 			}
-			return child
-		}
 
+			return child	
+		}
 
 		return (
 			<tbody>
 				{data.map((dataItem, rowIndex) => 
 					<tr key={'row' + rowIndex}>
 						{serialNumber ? <td key="no">{++rowIndex}</td> : null}
-						{dataField.map((field, colIndex) => { 
+
+						{dataField.map((field, colIndex) => {
 							
 							const { children, childrenNode, otherProps } = tds[colIndex].props
 
@@ -137,11 +142,12 @@ class DataTable extends React.Component {
 								throw 'Error. TD的属性 {childrenNode} 必须为function'
 							}
 
+							let column = (<td {...otherProps} key={field.name || 'custom-column'}></td>)
+							
 							//如果该列传递了childrenNode，直接调用它得到TD的children
-							return (
-								<td {...otherProps} key={field.name || 'custom-column'}>{childrenNode ? childrenNode(dataItem || {}) : getColumnChildren(children, dataItem || {})}</td>
-							)
+							let columnChildren = childrenNode ? childrenNode(dataItem || {}) : renderChildrenNode(column, children, dataItem || {})
 
+							return cloneElement(column, {children: columnChildren})
 						})}
 					</tr>
 				)}

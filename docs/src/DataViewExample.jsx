@@ -50,12 +50,11 @@ class DataViewExample extends Component {
 			createDate: '2011-01-01'
 		}];
 
-		//模板中，如果td的children仅为string时，其使用的%%数据占位符才会被自动替换成真实数据
 		const rowTemplate = (
 			<tr>
 				<td>%id%</td>
-				<td childrenNode={(rowData) => this.renderNameColumn(rowData)}></td>
-				<td>价格：%price%</td>
+				<td><span style={{color: 'red'}}>%name%</span></td>
+				<td>%price%(%name%)</td>
 				<td>%createDate%</td>
 				<td childrenNode={(rowData) => this.renderCustomColumn(rowData)}></td>
 			</tr>
@@ -67,12 +66,6 @@ class DataViewExample extends Component {
     		<DataTable striped hover serialNumber serialNumberHead={'No.'} dataField={dataField} data={products} rowTemplate={rowTemplate} />
     	</div>      
     );
-  }
-
-  renderNameColumn(rowData) {
-  	return (
-  		<span style={{color: 'red'}}>{rowData.name}</span>
-  	)
   }
 
   renderCustomColumn(rowData) {
