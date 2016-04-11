@@ -28,12 +28,12 @@ class Pagination extends React.Component {
 			  style={{textAlign: align}}
 			  className='pagination-wapper'>
 				<BootstrapPagination
+				  first
+	        last
+	        prev
+	        next
 	        ellipsis={ellipsis}
 	        boundaryLinks={boundaryLinks}
-	        first={'<<'}
-	        last={'>>'}
-	        prev={'<'}
-	        next={'>'}
 	        maxButtons={maxButtons}
 	        items={getTotalPages(this.props)}
 	        activePage={getActivePage(this.props)}

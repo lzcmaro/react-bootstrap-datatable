@@ -1,7 +1,7 @@
 import { DEFAULT_PAGE_SIZE } from './constants'
 
 export default class DataStore {
-	constructor(data, options = {currPage: 1, pageSize: DEFAULT_PAGE_SIZE, pagination: true, remote: false}) {
+	constructor(data, options = {currPage: 1, pageSize: DEFAULT_PAGE_SIZE, pagination: true}) {
 		this.data = data || []
 		this.options = options
 	}

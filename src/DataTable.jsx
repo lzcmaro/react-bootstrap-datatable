@@ -14,10 +14,9 @@ class DataTable extends React.Component {
 		const currPage = getActivePage(paginationProps)
 
 		this.store = new DataStore(props.data, {
-			pagination: !!props.pagination,
+			pagination: !!(props.pagination && props.pagination.local),
 			currPage: currPage,
-			pageSize: paginationProps.pageSize,
-			remote: !!paginationProps.remote
+			pageSize: paginationProps.pageSize
 		})
 		this.state = {
 			data: this.store.get(),
@@ -72,18 +71,24 @@ class DataTable extends React.Component {
 	}
 
 	renderTableHead() {
-		const {serialNumber, dataFields} = this.props
+		const {serialNumber, serialNumberHead, dataFields} = this.props
 
 		return (
 			<thead>
 				<tr>
-					{serialNumber ? <th key="no" width={50}>{this.props.serialNumberHead}</th> : null}
+					{this.renderSerialNumberCell(true, serialNumberHead)}
 					{dataFields.map(field => 
 						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
 					)}
 				</tr>
 			</thead>
 		)
+	}
+
+	renderSerialNumberCell(isHead, cellText) {
+		return this.props.serialNumber ? (
+				isHead ? <th key="no" className="cell-no">{cellText}</th> : <td key="no" className="cell-no">{cellText}</td>
+			) : null
 	}
 
 	renderTableBody() {
@@ -102,7 +107,7 @@ class DataTable extends React.Component {
 			<tbody>
 				{data.map((item, index) => 
 					<tr key={'row' + index}>
-						{serialNumber ? <td key="no">{++index}</td> : null}
+						{this.renderSerialNumberCell(false, ++index)}
 						{dataFields.map(field => 
 							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
 						)}
@@ -166,11 +171,11 @@ class DataTable extends React.Component {
 			<tbody>
 				{data.map((dataItem, rowIndex) => 
 					<tr key={'row' + rowIndex}>
-						{serialNumber ? <td key="no">{++rowIndex}</td> : null}
+						{this.renderSerialNumberCell(false, ++rowIndex)}
 
 						{dataFields.map((field, cellIndex) => {
 							
-							const { children, childrenNode, otherProps } = cells[cellIndex].props
+							const { children, childrenNode, ...otherProps } = cells[cellIndex].props
 
 							if(field.idField === true){ //idField为ID标识列，这里直接返回null，暂不作其它处理
 								return null
@@ -194,20 +199,16 @@ class DataTable extends React.Component {
 	}
 
 	renderPagination() {
+		const { pagination } = this.props
 		return (
 			<Pagination
-        {...this.props.pagination}
+        {...pagination}
         activePage={this.state.currPage}
-        onChangePage={this.onChangePage.bind(this)} />
+        onChangePage={pagination.local ? this.handleChangePage.bind(this) : pagination.onChangePage} />
 		)
 	}
 
-	onChangePage(event, selectedEvent) {
-		//TODO: 后台分页
-		if(this.store.remote){
-
-		}
-
+	handleChangePage(event, selectedEvent) {
 		const currPage = selectedEvent.eventKey
 
     this.setState({

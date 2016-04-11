@@ -7,6 +7,24 @@ import '../../src/less/data-table.less'
 
 class DataViewExample extends Component {
 
+  constructor(props) {
+    super(props)
+    this.state = {
+      currPage: 1,
+      data: this.getDataForCurrPage(1)
+    }
+  }
+
+  getDataForCurrPage(pageNumber) {
+    let data = [];
+
+    for (var i = 0; i < 10; i++) {
+      data.push({id: i, name: ('Product-' + i + '-' + pageNumber), price: (100 + i), createDate: '2011-01-01'})
+    }
+
+    return data
+  }
+
   render() {
 
   	const dataFields = [{
@@ -28,12 +46,6 @@ class DataViewExample extends Component {
   		value: 'column'
   	}];
 
-  	const products = [];
-
-    for (var i = 0; i < 101; i++) {
-      products.push({id: i, name: ('Product' + i), price: (100 + i), createDate: '2011-01-01'})
-    };
-
 		const rowTemplate = (
 			<tr>
 				<td>%id%</td>
@@ -53,9 +65,17 @@ class DataViewExample extends Component {
           serialNumber 
           serialNumberHead={'No.'} 
           dataFields={dataFields} 
-          data={products} 
+          data={this.state.data} 
           rowTemplate={rowTemplate} 
-          pagination={{remote: false, activePage: 1, pageSize: 10, total: products.length, showTotalText: true, maxButtons: 5}} />
+          pagination={{ 
+            activePage: this.state.currPage, 
+            pageSize: 10, 
+            total: 101, 
+            showTotalText: true, 
+            maxButtons: 5,
+            local: false,
+            onChangePage: this.handleChangePage.bind(this)
+          }} />
     	</div>      
     );
   }
@@ -64,6 +84,16 @@ class DataViewExample extends Component {
   	return (
   		<a href="javascript:;" onClick={() => console.log('deleting', rowData.id)}>Delete</a>
   	)
+  }
+
+  handleChangePage(event, selectEvent) {
+    const page = selectEvent.eventKey
+
+    //模拟请求
+    setTimeout(() => this.setState({
+      data: this.getDataForCurrPage(page),
+      currPage: page
+    }), 500)
   }
 }
 
