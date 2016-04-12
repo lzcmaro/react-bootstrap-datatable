@@ -32,6 +32,14 @@ export default class DataStore {
 		return this
 	}
 
+	setKeyField(keyField) {
+		this.options.keyField = keyField
+	}
+
+	getKeyField(){
+		return this.options.keyField
+	}
+
 	getDataLength() {
 		return this.data.length
 	}

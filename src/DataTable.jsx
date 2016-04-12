@@ -14,13 +14,16 @@ class DataTable extends React.Component {
 		const currPage = getActivePage(paginationProps)
 
 		this.store = new DataStore(props.data, {
-			pagination: !!(props.pagination && props.pagination.local),
+			pagination: props.pagination && props.pagination.local,
 			currPage: currPage,
 			pageSize: paginationProps.pageSize
 		})
+
 		this.state = {
 			data: this.store.get(),
-			currPage: currPage
+			currPage: currPage,
+			selectAll: false,
+			selectedRows: []
 		}
 	}
 
@@ -32,7 +35,9 @@ class DataTable extends React.Component {
 
 		this.setState({
 			data: this.store.setPage(currPage).get(),
-			currPage: currPage
+			currPage: currPage,
+			selectAll: false,
+			selectedRows: []
 		})
 	}
 
@@ -40,13 +45,13 @@ class DataTable extends React.Component {
 		return (
 			<div className="data-table-wapper">
 				{this.renderDataTable()}
-				{this.props.pagination ? this.renderPagination() : null}
+				{this.renderPagination()}
 			</div>
 		)
 	}
 
 	renderDataTable() {
-    const {striped, bordered, hover, serialNumber, dataFields, data, template, rowTemplate, children, ...otherProps} = this.props
+    const {striped, bordered, hover, serialNumber, dataFields, data, rowTemplate, children, ...otherProps} = this.props
     let classes = {
 			'data-table': true,
       'table': true,
@@ -56,8 +61,26 @@ class DataTable extends React.Component {
     }
 
     if(!dataFields || !Array.isArray(dataFields) || dataFields.length <= 0){
-			throw 'Error. 属性 {dataFields} 必传，且为数组。'
+			throw 'Error. 属性 {dataFields} 必传，且不为空数组。'
 		}
+
+		let keyField
+
+		dataFields.forEach(field => {
+			if(field.idField){
+				if(keyField){
+					throw 'Error. 属性 {dataFields.idField} 只能设一个值。'
+				}
+				keyField = field.idField
+			}
+		})
+
+		if(!keyField){
+			throw 'Error. 属性 {dataFields.idField} 需要设一个值。'
+		}
+
+		//用来保存用户设置的idField值，方便后面使用以及获取相应数据
+		this.store.setKeyField({keyField})
 
 		return (
 			<table 
@@ -71,12 +94,14 @@ class DataTable extends React.Component {
 	}
 
 	renderTableHead() {
-		const {serialNumber, serialNumberHead, dataFields} = this.props
+		const { serialNumber, serialNumberHead, dataFields, selection } = this.props
+		let selectionProps = selection || {}
 
 		return (
 			<thead>
 				<tr>
-					{this.renderSerialNumberCell(true, serialNumberHead)}
+				  {this.renderSelectionColumn(true, 'all')}
+					{this.renderSerialNumberColumn(true, serialNumberHead)}
 					{dataFields.map(field => 
 						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
 					)}
@@ -85,14 +110,90 @@ class DataTable extends React.Component {
 		)
 	}
 
-	renderSerialNumberCell(isHead, cellText) {
+	renderSelectionColumn(isHead, key, rowData) {
+		const { selection } = this.props
+		let ElementType = isHead ? 'th' : 'td'
+		let classes= 'cell-selection'
+
+		let checked = isHead ? this.state.selectAll : this.state.selectedRows.indexOf(key) !== -1
+
+		if(selection){
+
+			switch(selection.mode){
+				case Constants.SELECTION_MODE.SINGLE:
+				  return (
+				  		<ElementType className={classes}> {isHead ? null : <input key={key} type="radio" checked={checked} onClick={this.handleCheckInput.bind(this)} />}</ElementType>
+				  	)
+				case Constants.SELECTION_MODE.MULTIPLE:
+				  return (
+				  		<ElementType className={classes}><input key={key} type="checkbox" checked={checked} onClick={isHead ? this.handleSelectAll.bind(this) : this.handleCheckInput.bind(this)} /></ElementType>
+				  	)
+        default:
+        	throw 'Error. 属性 {selection.mode} 必须为single || multiple.'
+			}
+
+		}
+
+		return null
+	}
+
+	handleSelectAll(event) {
+		const checked = event.currentTarget.checked
+
+		this.setState({
+			selectAll: checked,
+			selectedRows: checked ? this.state.data.map((item, index) => index) : []
+		})
+
+		this.props.selection.onSelectAll && this.props.selection.onSelectAll(checked)
+	}
+
+	handleSelectRow(event) {
+		const { selection } = this.props
+		
+		if(selection.clickToSelect){
+			let rowIndex = event.currentTarget.rowIndex - 1,
+				checked = this.state.selectedRows.indexOf(rowIndex) === -1
+			this.handleToggleInput(rowIndex, checked)
+		}
+	}
+
+	handleCheckInput(event) {
+		let target = event.currentTarget, 
+			checked = target.checked,
+			rowIndex = target.parentElement.parentElement.rowIndex - 1 //tr.rowIndex会把<thead><tr></tr></thead>的行也计算在内
+			
+		this.handleToggleInput(rowIndex, checked)
+	}
+
+	handleToggleInput(rowIndex, checked){
+		const { selection } = this.props
+		let selectedRows = []
+				
+		if(selection.mode === Constants.SELECTION_MODE.SINGLE){
+			selectedRows.push( rowIndex )
+		}else{
+			selectedRows = this.state.selectedRows.slice()		
+			checked ? selectedRows.push( rowIndex ) : ( selectedRows = selectedRows.filter(item => item !== rowIndex))
+		}
+
+		this.setState({
+			selectAll: selectedRows.length === this.state.data.length,
+			selectedRows: selectedRows
+		})
+
+		this.props.selection.onSelect && this.props.selection.onSelect(checked, this.state.data[rowIndex])
+	}
+
+	renderSerialNumberColumn(isHead, cellText) {
+		let ElementType = isHead ? 'th' : 'td'
 		return this.props.serialNumber ? (
-				isHead ? <th key="no" className="cell-no">{cellText}</th> : <td key="no" className="cell-no">{cellText}</td>
+				<ElementType key="no" className="cell-no">{cellText}</ElementType>
 			) : null
 	}
 
 	renderTableBody() {
-		const {serialNumber, dataFields, template, rowTemplate, emptyText} = this.props
+		const {serialNumber, dataFields, rowTemplate, emptyText, selection} = this.props
 		const data = this.state.data
 
 		if(!data || !Array.isArray(data) || data.length <= 0){
@@ -103,11 +204,16 @@ class DataTable extends React.Component {
 			return this.renderTableBodyForRowTemplate()
 		}
 
+		let classes = {
+			'row-selection': selection && selection.clickToSelect
+		}
+
 		return (
 			<tbody>
 				{data.map((item, index) => 
-					<tr key={'row' + index}>
-						{this.renderSerialNumberCell(false, ++index)}
+					<tr className={classnames(classes)} key={'row' + index} onClick={this.handleSelectRow.bind(this)}>
+						{this.renderSelectionColumn(false, index)}
+						{this.renderSerialNumberColumn(false, ++index)}
 						{dataFields.map(field => 
 							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
 						)}
@@ -118,20 +224,21 @@ class DataTable extends React.Component {
 	}
 
 	renderEmptyText() {
-		const { dataFields, serialNumber, emptyText } = this.props
-		let cols = dataFields.length
+		const { dataFields, serialNumber, selection, emptyText } = this.props
+		let columns = dataFields.length
 			
-		serialNumber && ++cols
+		serialNumber && ++columns
+		selection && ++columns
 
 		return (
 			<tbody>
-				<tr><td colSpan={cols} className="empty-text">{emptyText}</td></tr>
+				<tr><td colSpan={columns} className="empty-text">{emptyText}</td></tr>
 			</tbody>
 		)
 	}
 
 	renderTableBodyForRowTemplate() {
-		const { serialNumber, dataFields, rowTemplate } = this.props
+		const { serialNumber, dataFields, rowTemplate, selection } = this.props
 		const data = this.state.data
 		
 		//校验模板是否为 <tr><td></td></tr> 格式
@@ -152,6 +259,10 @@ class DataTable extends React.Component {
 			}
 		})
 
+		let classes = {
+			'row-selection': selection && selection.clickToSelect
+		}
+
 		const renderChildrenNode = (parent, child, data) => {
 			if(typeof child === 'string'){
 				//当children为string时，把数据占位符%%替换成真实数据
@@ -170,9 +281,9 @@ class DataTable extends React.Component {
 		return (
 			<tbody>
 				{data.map((dataItem, rowIndex) => 
-					<tr key={'row' + rowIndex}>
-						{this.renderSerialNumberCell(false, ++rowIndex)}
-
+					<tr className={classnames(classes)} key={'row' + rowIndex} onClick={this.handleSelectRow.bind(this)}>
+						{this.renderSelectionColumn(false, rowIndex)}
+						{this.renderSerialNumberColumn(false, ++rowIndex)}
 						{dataFields.map((field, cellIndex) => {
 							
 							const { children, childrenNode, ...otherProps } = cells[cellIndex].props
@@ -200,12 +311,12 @@ class DataTable extends React.Component {
 
 	renderPagination() {
 		const { pagination } = this.props
-		return (
+		return pagination ? (
 			<Pagination
         {...pagination}
         activePage={this.state.currPage}
         onChangePage={pagination.local ? this.handleChangePage.bind(this) : pagination.onChangePage} />
-		)
+		) : null
 	}
 
 	handleChangePage(event, selectedEvent) {
@@ -213,12 +324,23 @@ class DataTable extends React.Component {
 
     this.setState({
     	data: this.store.setPage(currPage).get(),
-    	currPage: currPage
+    	currPage: currPage,
+    	selectAll: false,
+    	selectedRows: []
     })
 	}
 
 	getPaginationProps(props) {
 		return (props || this.props).pagination || Pagination.defaultProps
+	}
+
+	/**
+	 * 获取当前页已选择的行数据
+	 * 该方法如果在this.props.selection.onSelect()中即时调用，由于state还没更新，这里的数据将会是历史的脏数据
+	 */
+	getSelectedDatas() {
+		const { selectedRows, data } = this.state
+		return data.filter((item, index) => selectedRows.indexOf(index) !== -1)
 	}
 
 }
@@ -253,11 +375,7 @@ DataTable.propTypes = {
    */
   data: PropTypes.array,
   /**
-   * 用于生成DataTable的模板（所有TBODY的行）
-   */
-  template: PropTypes.element,
-  /**
-   * 用于生成DataTable的行模板
+   * 用于生成DataTable的行模板，格式为 <tr><td></td></tr>
    */
   rowTemplate: PropTypes.element,
   /**
@@ -265,12 +383,32 @@ DataTable.propTypes = {
    */
   emptyText: PropTypes.string,
   /**
-   * 是否添加分页
+   * 是否添加分页条
+   * 
+   * pagination: {
+   *   ellipsis: bool,
+   *   boundaryLinks: bool,
+   *   maxButtons: number,
+   *   activePage: number,
+   *   pageSize: number,
+   *   total: number,
+   *   showTotalText: bool,
+   *   align: 'right' || 'left',
+   *   local: bool,
+   *   onChangePage: func
+   * }
    */
-  pagination: PropTypes.oneOfType([
-  		PropTypes.bool,
-  		PropTypes.object
-  	])
+  pagination: PropTypes.object,
+  /**
+   * 是否添加行选择，single或multiple
+   * 
+   * selection: {
+   *   mode: 'single' || 'multiple',
+   *   clickToSelect: bool,
+   *   onSelect: func
+   * }
+   */
+  selection: PropTypes.object
 }
 
 DataTable.defaultProps = {
@@ -279,8 +417,7 @@ DataTable.defaultProps = {
 	hover: false,
 	serialNumber: false,
 	serialNumberHead: Constants.SN_HEAD_TEXT,
-	emptyText: Constants.EMPTY_TEXT,
-	pagination: false
+	emptyText: Constants.EMPTY_TEXT
 }
 
 export default DataTable

@@ -59,7 +59,8 @@ class DataViewExample extends Component {
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
-    		<DataTable 
+    		<DataTable
+          ref="dataTable"
           striped 
           hover 
           serialNumber 
@@ -73,8 +74,13 @@ class DataViewExample extends Component {
             total: 101, 
             showTotalText: true, 
             maxButtons: 5,
-            local: false,
             onChangePage: this.handleChangePage.bind(this)
+          }}
+          selection={{
+            mode: 'multiple',
+            clickToSelect: true,
+            onSelect: this.handleSelect.bind(this),
+            onSelectAll: this.handleSelectAll.bind(this)
           }} />
     	</div>      
     );
@@ -94,6 +100,14 @@ class DataViewExample extends Component {
       data: this.getDataForCurrPage(page),
       currPage: page
     }), 500)
+  }
+
+  handleSelect(selected, rowData) {
+    console.log('handleSelect: ', selected, rowData)
+  }
+
+  handleSelectAll(selected) {
+    console.log('handleSelectAll: ', selected)
   }
 }
 
