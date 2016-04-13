@@ -22,11 +22,7 @@ export default class DataStore {
 	set(data) {
 		this.data = data || []
 	}
-	/**
-	 * 设置当前页码
-	 * @param  {number} nextPage
-	 * @return {DataStore}          
-	 */
+	
 	setPage(nextPage) {
 		this.options.currPage = nextPage
 		return this

@@ -138,6 +138,7 @@ class DataTable extends React.Component {
 	}
 
 	handleSelectAll(event) {
+		const { selection } = this.props
 		const checked = event.currentTarget.checked
 
 		this.setState({
@@ -145,13 +146,13 @@ class DataTable extends React.Component {
 			selectedRows: checked ? this.state.data.map((item, index) => index) : []
 		})
 
-		this.props.selection.onSelectAll && this.props.selection.onSelectAll(checked)
+		selection.onSelectAll && selection.onSelectAll(checked)
 	}
 
 	handleSelectRow(event) {
 		const { selection } = this.props
 		
-		if(selection.clickToSelect){
+		if(selection && selection.clickToSelect === true){
 			let rowIndex = event.currentTarget.rowIndex - 1,
 				checked = this.state.selectedRows.indexOf(rowIndex) === -1
 			this.handleToggleInput(rowIndex, checked)
@@ -182,7 +183,7 @@ class DataTable extends React.Component {
 			selectedRows: selectedRows
 		})
 
-		this.props.selection.onSelect && this.props.selection.onSelect(checked, this.state.data[rowIndex])
+		selection.onSelect && selection.onSelect(checked, this.state.data[rowIndex])
 	}
 
 	renderSerialNumberColumn(isHead, cellText) {

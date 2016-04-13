@@ -1,11 +1,11 @@
-import React, { Component } from 'react'
+import React from 'react'
 
 import DataTable from '../../src/DataTable'
 
 import 'bootstrap/less/bootstrap.less'
 import '../../src/less/data-table.less'
 
-class DataViewExample extends Component {
+class DataViewExample extends React.Component {
 
   constructor(props) {
     super(props)
@@ -59,6 +59,7 @@ class DataViewExample extends Component {
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
     		<h2>Data Table.</h2>
+        <div style={{marginBottom: '15px'}}><button onClick={this.handleGetSelectedDatas.bind(this)}>getSelectedDatas</button></div>
     		<DataTable
           ref="dataTable"
           striped 
@@ -90,6 +91,10 @@ class DataViewExample extends Component {
   	return (
   		<a href="javascript:;" onClick={() => console.log('deleting', rowData.id)}>Delete</a>
   	)
+  }
+
+  handleGetSelectedDatas() {
+    console.log('selectedDatas: ', this.refs.dataTable.getSelectedDatas())
   }
 
   handleChangePage(event, selectEvent) {
