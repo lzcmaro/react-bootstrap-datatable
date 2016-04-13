@@ -19,7 +19,7 @@ class DataViewExample extends React.Component {
     let data = [];
 
     for (var i = 0; i < 10; i++) {
-      data.push({id: i, name: ('Product-' + i + '-' + pageNumber), price: (100 + i), createDate: '2011-01-01'})
+      data.push({id: pageNumber + '-' + i, name: ('Product-' + pageNumber + '-' + i), price: (100 + i), createDate: '2011-01-01'})
     }
 
     return data
@@ -39,11 +39,10 @@ class DataViewExample extends React.Component {
   	}, {
   		name: 'createDate',
   		text: 'CreateDate',
-  		type: 'date',
-  		dateFormat: 'YYYY-MM-DD'
+  		dataFormat: 'YYYY-MM-DD'
   	}, {
   		text: 'Custom Column',
-  		value: 'column'
+  		dataFormat: this.renderCustomColumn.bind(this)
   	}];
 
 		const rowTemplate = (
@@ -79,6 +78,7 @@ class DataViewExample extends React.Component {
           }}
           selection={{
             mode: 'multiple',
+            selected: ['1-1', '1-3', '1-7', 'aaa', 'bbb', '2-0', '2-8'],
             clickToSelect: true,
             onSelect: this.handleSelect.bind(this),
             onSelectAll: this.handleSelectAll.bind(this)

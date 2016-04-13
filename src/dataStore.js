@@ -21,6 +21,11 @@ export default class DataStore {
 
 	set(data) {
 		this.data = data || []
+		return this
+	}
+
+	setOptions(options) {
+		this.options = options
 	}
 	
 	setPage(nextPage) {

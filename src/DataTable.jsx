@@ -9,36 +9,90 @@ class DataTable extends React.Component {
 	
 	constructor(props) {
 		super(props)
-
-		const paginationProps = this.getPaginationProps(props)
-		const currPage = getActivePage(paginationProps)
-
-		this.store = new DataStore(props.data, {
-			pagination: props.pagination && props.pagination.local,
-			currPage: currPage,
-			pageSize: paginationProps.pageSize
-		})
-
-		this.state = {
-			data: this.store.get(),
-			currPage: currPage,
-			selectAll: false,
-			selectedRows: []
-		}
+		this.store = new DataStore()
+		this.initOptions(true, props)
 	}
 
 	componentWillReceiveProps(nextProps) {
-		const paginationProps = this.getPaginationProps(nextProps)
+		this.initOptions(false, nextProps)
+	}
+
+	initOptions(init, props) {
+		const { data, dataFields, selection } = props
+		const paginationProps = this.getPaginationProps(props)
 		const currPage = getActivePage(paginationProps)
+		let selectedRows = []
+		let keyField
 
-		nextProps.data && this.store.set(nextProps.data)
+		if(!dataFields || !Array.isArray(dataFields) || dataFields.length <= 0){
+			throw 'Error. 属性 {dataFields} 必传，且不为空数组。'
+		}
 
-		this.setState({
+		dataFields.forEach(field => {
+			if(field.idField){
+				if(keyField){
+					throw 'Error. 属性 {dataFields.idField} 只能设一个值。'
+				}
+				keyField = field.name
+			}
+		})
+
+		if(!keyField){
+			throw 'Error. 属性 {dataFields.idField} 需要设一个值。'
+		}
+
+		if(data.length > 0 && selection && selection.selected){
+
+			switch(selection.mode){
+				case Constants.SELECTION_MODE.SINGLE:
+				  if(typeof selection.selected !== 'number' && typeof selection.selected !== 'string'){
+						throw 'Error. 属性 {selection.mode} 为single时，{selection.selected} 的值须为 number || string'
+					}
+					selectedRows = [selection.selected]
+					break;
+				case Constants.SELECTION_MODE.MULTIPLE:
+				  if(!Array.isArray(selection.selected)){
+						throw 'Error. 属性 {selection.mode} 为multiple时，{selection.selected} 的值须为 array'
+					}
+					selectedRows = selection.selected
+					break;
+			}
+
+			//如果传递了不存在的keyFieldValue，会导致selectedRows中有多余的数据，可能会出现全选无法正确的自动选上的问题，这里对selectedRows进行过滤
+			selectedRows = selectedRows.filter(keyFieldValue => this.filterKeyValue(keyField, keyFieldValue, data))
+			
+		}
+
+		this.store.set(data).setOptions({
+			pagination: props.pagination && props.pagination.local,
+			currPage: currPage,
+			pageSize: paginationProps.pageSize,
+			keyField: keyField
+		})
+
+		let state = {
 			data: this.store.setPage(currPage).get(),
 			currPage: currPage,
 			selectAll: false,
-			selectedRows: []
+			selectedRows: selectedRows
+		}
+
+		init ? this.state = state : this.setState(state)
+	}
+
+	filterKeyValue(keyField, keyFieldValue, data) {
+		let result = false
+		data.forEach(d => {
+			if(d[keyField] === keyFieldValue){
+				result = true
+				return false
+			}
 		})
+		return result
+	}
+
+	getKeyField() {
+		return this.store.getKeyField()
 	}
 
 	render() {
@@ -51,7 +105,7 @@ class DataTable extends React.Component {
 	}
 
 	renderDataTable() {
-    const {striped, bordered, hover, serialNumber, dataFields, data, rowTemplate, children, ...otherProps} = this.props
+    const {striped, bordered, hover, serialNumber, dataFields, data, rowTemplate, emptyText, pagination, selection, children, ...otherProps} = this.props
     let classes = {
 			'data-table': true,
       'table': true,
@@ -59,28 +113,6 @@ class DataTable extends React.Component {
       'table-bordered': bordered,
       'table-hover': hover
     }
-
-    if(!dataFields || !Array.isArray(dataFields) || dataFields.length <= 0){
-			throw 'Error. 属性 {dataFields} 必传，且不为空数组。'
-		}
-
-		let keyField
-
-		dataFields.forEach(field => {
-			if(field.idField){
-				if(keyField){
-					throw 'Error. 属性 {dataFields.idField} 只能设一个值。'
-				}
-				keyField = field.idField
-			}
-		})
-
-		if(!keyField){
-			throw 'Error. 属性 {dataFields.idField} 需要设一个值。'
-		}
-
-		//用来保存用户设置的idField值，方便后面使用以及获取相应数据
-		this.store.setKeyField({keyField})
 
 		return (
 			<table 
@@ -110,11 +142,10 @@ class DataTable extends React.Component {
 		)
 	}
 
-	renderSelectionColumn(isHead, key, rowData) {
+	renderSelectionColumn(isHead, key) {
 		const { selection } = this.props
 		let ElementType = isHead ? 'th' : 'td'
 		let classes= 'cell-selection'
-
 		let checked = isHead ? this.state.selectAll : this.state.selectedRows.indexOf(key) !== -1
 
 		if(selection){
@@ -122,11 +153,11 @@ class DataTable extends React.Component {
 			switch(selection.mode){
 				case Constants.SELECTION_MODE.SINGLE:
 				  return (
-				  		<ElementType className={classes}> {isHead ? null : <input key={key} type="radio" checked={checked} onClick={this.handleCheckInput.bind(this)} />}</ElementType>
+				  		<ElementType className={classes}> {isHead ? null : <input key={key} type="radio" checked={checked} onChange={this.handleCheckInput.bind(this)} />}</ElementType>
 				  	)
 				case Constants.SELECTION_MODE.MULTIPLE:
 				  return (
-				  		<ElementType className={classes}><input key={key} type="checkbox" checked={checked} onClick={isHead ? this.handleSelectAll.bind(this) : this.handleCheckInput.bind(this)} /></ElementType>
+				  		<ElementType className={classes}><input key={key} type="checkbox" checked={checked} onChange={isHead ? this.handleSelectAll.bind(this) : this.handleCheckInput.bind(this)} /></ElementType>
 				  	)
         default:
         	throw 'Error. 属性 {selection.mode} 必须为single || multiple.'
@@ -140,10 +171,11 @@ class DataTable extends React.Component {
 	handleSelectAll(event) {
 		const { selection } = this.props
 		const checked = event.currentTarget.checked
+		const keyField = this.getKeyField()
 
 		this.setState({
 			selectAll: checked,
-			selectedRows: checked ? this.state.data.map((item, index) => index) : []
+			selectedRows: checked ? this.state.data.map(item => item[keyField]) : []
 		})
 
 		selection.onSelectAll && selection.onSelectAll(checked)
@@ -151,10 +183,12 @@ class DataTable extends React.Component {
 
 	handleSelectRow(event) {
 		const { selection } = this.props
+		const keyField = this.getKeyField()
 		
 		if(selection && selection.clickToSelect === true){
 			let rowIndex = event.currentTarget.rowIndex - 1,
-				checked = this.state.selectedRows.indexOf(rowIndex) === -1
+				rowData = this.state.data[rowIndex],
+				checked = this.state.selectedRows.indexOf(rowData[keyField]) === -1
 			this.handleToggleInput(rowIndex, checked)
 		}
 	}
@@ -168,22 +202,22 @@ class DataTable extends React.Component {
 	}
 
 	handleToggleInput(rowIndex, checked){
-		const { selection } = this.props
+		const { selection } = this.props, data = this.state.data, rowData = data[rowIndex], keyField = this.getKeyField()
 		let selectedRows = []
 				
 		if(selection.mode === Constants.SELECTION_MODE.SINGLE){
-			selectedRows.push( rowIndex )
+			selectedRows.push( rowData[keyField] )
 		}else{
 			selectedRows = this.state.selectedRows.slice()		
-			checked ? selectedRows.push( rowIndex ) : ( selectedRows = selectedRows.filter(item => item !== rowIndex))
+			checked ? selectedRows.push( rowData[keyField] ) : ( selectedRows = selectedRows.filter(item => item !== rowData[keyField]))
 		}
 
 		this.setState({
-			selectAll: selectedRows.length === this.state.data.length,
+			selectAll: selectedRows.length === data.length,
 			selectedRows: selectedRows
 		})
 
-		selection.onSelect && selection.onSelect(checked, this.state.data[rowIndex])
+		selection.onSelect && selection.onSelect(checked, rowData)
 	}
 
 	renderSerialNumberColumn(isHead, cellText) {
@@ -209,11 +243,13 @@ class DataTable extends React.Component {
 			'row-selection': selection && selection.clickToSelect
 		}
 
+		const keyField = this.getKeyField()
+
 		return (
 			<tbody>
 				{data.map((item, index) => 
 					<tr className={classnames(classes)} key={'row' + index} onClick={this.handleSelectRow.bind(this)}>
-						{this.renderSelectionColumn(false, index)}
+						{this.renderSelectionColumn(false, item[keyField])}
 						{this.renderSerialNumberColumn(false, ++index)}
 						{dataFields.map(field => 
 							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
@@ -279,11 +315,13 @@ class DataTable extends React.Component {
 			return child	
 		}
 
+		const keyField = this.getKeyField()
+
 		return (
 			<tbody>
 				{data.map((dataItem, rowIndex) => 
 					<tr className={classnames(classes)} key={'row' + rowIndex} onClick={this.handleSelectRow.bind(this)}>
-						{this.renderSelectionColumn(false, rowIndex)}
+						{this.renderSelectionColumn(false, dataItem[keyField])}
 						{this.renderSerialNumberColumn(false, ++rowIndex)}
 						{dataFields.map((field, cellIndex) => {
 							
@@ -341,7 +379,8 @@ class DataTable extends React.Component {
 	 */
 	getSelectedDatas() {
 		const { selectedRows, data } = this.state
-		return data.filter((item, index) => selectedRows.indexOf(index) !== -1)
+		const keyField = this.getKeyField()
+		return data.filter(item => selectedRows.indexOf(item[keyField]) !== -1)
 	}
 
 }
@@ -405,14 +444,17 @@ DataTable.propTypes = {
    * 
    * selection: {
    *   mode: 'single' || 'multiple',
+   *   selected: number || string || array,
    *   clickToSelect: bool,
-   *   onSelect: func
+   *   onSelect: func,
+   *   onSelectAll: func
    * }
    */
   selection: PropTypes.object
 }
 
 DataTable.defaultProps = {
+	data: [],
 	striped: false,
 	bordered: true,
 	hover: false,
