@@ -22,7 +22,9 @@ class Pagination extends React.Component {
 	render() {
 		const { ellipsis, boundaryLinks, maxButtons, showTotalText, align, onChangePage, ...otherProps } = this.props
 		//TODO: 是否显示数据总数
-		return (
+		const totalPages = getTotalPages(otherProps)
+
+		return totalPages > 1 ? (
 			<div 
 			  {...otherProps}
 			  style={{textAlign: align}}
@@ -35,11 +37,11 @@ class Pagination extends React.Component {
 	        ellipsis={ellipsis}
 	        boundaryLinks={boundaryLinks}
 	        maxButtons={maxButtons}
-	        items={getTotalPages(this.props)}
-	        activePage={getActivePage(this.props)}
+	        items={totalPages}
+	        activePage={getActivePage(otherProps)}
 	        onSelect={this.props.onChangePage} />
 			</div>
-		)
+		) : null
 	}
 }
 

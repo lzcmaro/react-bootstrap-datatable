@@ -98,6 +98,9 @@ class DataViewExample extends React.Component {
     console.log('selectedDatas: ', this.refs.dataTable.getSelectedDatas())
   }
 
+  /**
+   * DataTable.pagination.local = true时，该事件不会被触发
+   */
   handleChangePage(event, selectEvent) {
     const page = selectEvent.eventKey
 

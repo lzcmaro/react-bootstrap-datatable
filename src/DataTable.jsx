@@ -59,7 +59,7 @@ class DataTable extends React.Component {
 			}
 
 			//如果传递了不存在的keyFieldValue，会导致selectedRows中有多余的数据，可能会出现全选无法正确的自动选上的问题，这里对selectedRows进行过滤
-			selectedRows = selectedRows.filter(keyFieldValue => this.filterKeyValue(keyField, keyFieldValue, data))
+			selectedRows = selectedRows.filter(keyFieldValue => this.filterKeyFieldValue(keyField, keyFieldValue, data))
 			
 		}
 
@@ -80,7 +80,7 @@ class DataTable extends React.Component {
 		init ? this.state = state : this.setState(state)
 	}
 
-	filterKeyValue(keyField, keyFieldValue, data) {
+	filterKeyFieldValue(keyField, keyFieldValue, data) {
 		let result = false
 		data.forEach(d => {
 			if(d[keyField] === keyFieldValue){
@@ -376,9 +376,9 @@ class DataTable extends React.Component {
 	 * 该方法如果在this.props.selection.onSelect()中即时调用，由于state还没更新，这里的数据将会是历史的脏数据
 	 */
 	getSelectedDatas() {
-		const { selectedRows, data } = this.state
+		const { selectedRows } = this.state
 		const keyField = this.getKeyField()
-		return data.filter(item => selectedRows.indexOf(item[keyField]) !== -1)
+		return this.store.getAllData().filter(item => selectedRows.indexOf(item[keyField]) !== -1)
 	}
 
 }

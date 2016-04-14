@@ -19,6 +19,10 @@ export default class DataStore {
 		return this.data.slice(start, end)
 	}
 
+	getAllData(){
+		return this.data
+	}
+
 	set(data) {
 		this.data = data || []
 		return this
