@@ -363,9 +363,7 @@ class DataTable extends React.Component {
 
     this.setState({
     	data: this.store.setPage(currPage).get(),
-    	currPage: currPage,
-    	selectAll: false,
-    	selectedRows: []
+    	currPage: currPage
     })
 	}
 

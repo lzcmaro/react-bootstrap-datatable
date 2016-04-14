@@ -18,7 +18,7 @@ class DataViewExample extends React.Component {
   getDataForCurrPage(pageNumber) {
     let data = [];
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 101; i++) {
       data.push({id: pageNumber + '-' + i, name: ('Product-' + pageNumber + '-' + i), price: (100 + i), createDate: '2011-01-01'})
     }
 
@@ -71,14 +71,15 @@ class DataViewExample extends React.Component {
           pagination={{ 
             activePage: this.state.currPage, 
             pageSize: 10, 
-            total: 101, 
+            total: this.state.data.length, 
             showTotalText: true, 
             maxButtons: 5,
+            local: true,
             onChangePage: this.handleChangePage.bind(this)
           }}
           selection={{
             mode: 'multiple',
-            selected: ['1-1', '1-3', '1-7', 'aaa', 'bbb', '2-0', '2-8'],
+            selected: ['1-1', '1-3', '1-7', 'aaa', 'bbb', '2-0', '2-8', '1-15'],
             clickToSelect: true,
             onSelect: this.handleSelect.bind(this),
             onSelectAll: this.handleSelectAll.bind(this)
