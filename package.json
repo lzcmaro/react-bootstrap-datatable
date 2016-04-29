@@ -20,11 +20,10 @@
     "lib"
   ],
   "keywords": [
-    "koa",
     "react",
-    "webpack",
-    "babel",
-    "boilerplate"
+    "bootstrap",
+    "table",
+    "component"
   ],
   "author": "lzcmaro",
   "license": "MIT",
