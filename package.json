@@ -2,12 +2,12 @@
   "name": "react-bootstrap-datatable",
   "version": "1.0.0",
   "description": "It's a react table for bootstrap",
-  "main": "index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "docs": "nodemon --watch server --watch webpack server/index.js",
     "docs-prod": "npm run build-docs && NODE_ENV=production nodemon server/index.js",
-    "build": "gulp",
+    "build": "NODE_ENV=production gulp",
     "build-docs": "npm run clean && NODE_ENV=production webpack --config webpack-docs-prod.config.js --display-modules",
     "clean": "rimraf docs/assets/"
   },
@@ -15,6 +15,10 @@
     "type": "git",
     "url": "git+https://github.com/lzcmaro/react-bootstrap-datatable.git"
   },
+  "files": [
+    "dist",
+    "lib"
+  ],
   "keywords": [
     "koa",
     "react",
@@ -48,6 +52,7 @@
     "extract-text-webpack-plugin": "^1.0.1",
     "file-loader": "^0.8.5",
     "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
     "gulp-clean": "^0.3.2",
     "gulp-less": "^3.0.5",
     "gulp-minify-css": "^1.2.4",

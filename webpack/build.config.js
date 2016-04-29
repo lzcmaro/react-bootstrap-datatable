@@ -23,13 +23,6 @@ export default extend({}, baseConfig, {
       commonjs: 'react-dom',
       amd: 'react-dom'
     }
-  }, {
-    'react-bootstrap': {
-      root: 'ReactBootstrap',
-      commonjs2: 'react-bootstrap',
-      commonjs: 'react-bootstrap',
-      amd: 'react-bootstrap'
-    }
   }],
   plugins: [
     new webpack.DefinePlugin({

@@ -7,18 +7,20 @@ var rename = require('gulp-rename');
 var uglify = require('gulp-uglify');
 var clean = require('gulp-clean');
 var sourcemaps = require('gulp-sourcemaps');
+var babel = require('gulp-babel');
 
 var webpack = require('gulp-webpack');
 var webpackConfig = require('./webpack.config.js');
 
-var DEST = 'dist/';
-var DEST_CSS = 'dist/css'
+var DIR_DIST = 'dist/';
+var DIR_DIST_CSS = 'dist/css'
+var DIR_LIB = 'lib/'
 
 gulp.task('webpack', function() {
 	return gulp.src('./src/index.js')
 		.pipe(webpack(webpackConfig))
 		//输出未压缩JS
-    .pipe(gulp.dest(DEST))
+    .pipe(gulp.dest(DIR_DIST))
     //压缩JS
     .pipe(uglify())
     //重命名为.min.js
@@ -27,24 +29,30 @@ gulp.task('webpack', function() {
     .pipe(sourcemaps.init())
     .pipe(sourcemaps.write('./'))
     //输出压缩后的JS
-    .pipe(gulp.dest(DEST));
+    .pipe(gulp.dest(DIR_DIST));
 });
 
 gulp.task('less', function() {
 	return gulp.src('./src/less/*.less')
 		.pipe(less())
 		.pipe(rename('react-bootstrap-datatable.css'))
-    .pipe(gulp.dest(DEST_CSS))
+    .pipe(gulp.dest(DIR_DIST_CSS))
     .pipe(minifyCss())
     .pipe(rename('react-bootstrap-datatable.min.css'))
-    .pipe(gulp.dest(DEST_CSS))
+    .pipe(gulp.dest(DIR_DIST_CSS))
+});
+
+gulp.task('babel', function() {
+	return gulp.src(['./src/*.js', './src/*.jsx'])
+    .pipe(babel())
+    .pipe(gulp.dest(DIR_LIB))
 });
 
 gulp.task('clean', function() {
-	return gulp.src(DEST, {read: false})
+	return gulp.src([DIR_DIST, DIR_LIB], {read: false})
     .pipe(clean());
 });
 
 gulp.task('default', ['clean'], function() {
-  gulp.run('webpack', 'less');
+  gulp.run('webpack', 'less', 'babel');
 });
