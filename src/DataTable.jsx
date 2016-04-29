@@ -118,7 +118,7 @@ class DataTable extends React.Component {
 			<table 
 				{...otherProps}
 				ref="table"
-				className={classnames(classes)}>
+				className={classnames(classes, this.props.className)}>
 				{this.renderTableHead()}
 				{this.renderTableBody()}
 			</table>
