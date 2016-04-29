@@ -6,7 +6,7 @@ import webpack from 'webpack';
 export default extend({}, baseConfig, {
   output: {
     path: path.resolve('./dist'),
-    filename: 'datatable.js'
+    filename: 'react-bootstrap-datatable.js'
   },
 	entry: './src/index',
   externals: [{
@@ -23,16 +23,18 @@ export default extend({}, baseConfig, {
       commonjs: 'react-dom',
       amd: 'react-dom'
     }
+  }, {
+    'react-bootstrap': {
+      root: 'ReactBootstrap',
+      commonjs2: 'react-bootstrap',
+      commonjs: 'react-bootstrap',
+      amd: 'react-bootstrap'
+    }
   }],
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {
         'NODE_ENV': JSON.stringify('production')
-      }
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false
       }
     })
   ]
