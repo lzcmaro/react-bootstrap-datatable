@@ -54,6 +54,10 @@ class DataViewExample extends React.Component {
 				<td childrenNode={(rowData) => this.renderCustomColumn(rowData)}></td>
 			</tr>
 		);
+
+    const emptyText = (
+      <p>没有数据，<a href="javascript:;" onClick={this.handleAdd}>马上添加</a></p>
+    );
   	
     return (
     	<div style={{width: '700px', margin: '0 auto'}}>
@@ -68,6 +72,7 @@ class DataViewExample extends React.Component {
           dataFields={dataFields} 
           data={this.state.data} 
           rowTemplate={rowTemplate} 
+          emptyText={emptyText}
           pagination={{ 
             activePage: this.state.currPage, 
             pageSize: 10, 
@@ -117,6 +122,10 @@ class DataViewExample extends React.Component {
 
   handleSelectAll(selected) {
     console.log('handleSelectAll: ', selected)
+  }
+
+  handleAdd(event) {
+    console.log('handleAdd: ', event)
   }
 }
 

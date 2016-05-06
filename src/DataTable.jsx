@@ -419,7 +419,10 @@ DataTable.propTypes = {
   /**
    * 没有数据时，显示的提示信息
    */
-  emptyText: PropTypes.string,
+  emptyText: PropTypes.oneOfType([
+  		PropTypes.string,
+  		PropTypes.element
+  	]),
   /**
    * 是否添加分页条
    * 
