@@ -127,7 +127,6 @@ class DataTable extends React.Component {
 
 	renderTableHead() {
 		const { serialNumber, serialNumberHead, dataFields, selection } = this.props
-		let selectionProps = selection || {}
 
 		return (
 			<thead>
@@ -135,7 +134,7 @@ class DataTable extends React.Component {
 				  {this.renderSelectionColumn(true, 'all')}
 					{this.renderSerialNumberColumn(true, serialNumberHead)}
 					{dataFields.map(field => 
-						field.idField ? null : <th key={field.name || 'custom-column'}>{field.text}</th>
+						field.idField ? null : <th key={field.name || 'cell-custom'} className={field.name ? '' : 'cell-custom'}>{field.text}</th>
 					)}
 				</tr>
 			</thead>
@@ -239,7 +238,7 @@ class DataTable extends React.Component {
 			return this.renderTableBodyForRowTemplate()
 		}
 
-		let classes = {
+		let rowClasses = {
 			'row-selection': selection && selection.clickToSelect
 		}
 
@@ -248,11 +247,11 @@ class DataTable extends React.Component {
 		return (
 			<tbody>
 				{data.map((item, index) => 
-					<tr className={classnames(classes)} key={'row' + index} onClick={this.handleSelectRow.bind(this)}>
+					<tr className={classnames(rowClasses)} key={'row' + index} onClick={this.handleSelectRow.bind(this)}>
 						{this.renderSelectionColumn(false, item[keyField])}
 						{this.renderSerialNumberColumn(false, ++index)}
 						{dataFields.map(field => 
-							field.idField ? null : <td key={field.name || 'custom-column'}>{item[field.name] || field.value || ''}</td>
+							field.idField ? null : <td key={field.name || 'cell-custom'} className={field.name ? '' : 'cell-custom'}>{item[field.name] || field.value || ''}</td>
 						)}
 					</tr>
 				)}
@@ -296,7 +295,7 @@ class DataTable extends React.Component {
 			}
 		})
 
-		let classes = {
+		let rowClasses = {
 			'row-selection': selection && selection.clickToSelect
 		}
 
@@ -320,12 +319,12 @@ class DataTable extends React.Component {
 		return (
 			<tbody>
 				{data.map((dataItem, rowIndex) => 
-					<tr className={classnames(classes)} key={'row' + rowIndex} onClick={this.handleSelectRow.bind(this)}>
+					<tr className={classnames(rowClasses)} key={'row' + rowIndex} onClick={this.handleSelectRow.bind(this)}>
 						{this.renderSelectionColumn(false, dataItem[keyField])}
 						{this.renderSerialNumberColumn(false, ++rowIndex)}
 						{dataFields.map((field, cellIndex) => {
 							
-							const { children, childrenNode, ...otherProps } = cells[cellIndex].props
+							const { children, childrenNode, className, ...otherProps } = cells[cellIndex].props
 
 							if(field.idField === true){ //idField为ID标识列，这里直接返回null，暂不作其它处理
 								return null
@@ -335,7 +334,10 @@ class DataTable extends React.Component {
 								throw 'Error. TD的属性 {childrenNode} 必须为function'
 							}
 
-							let column = (<td {...otherProps} key={field.name || 'custom-column'}></td>)
+							// field.name 不存在时，给td添加 cell-custom 样式
+							const cellClasses = { 'cell-custom': !field.name }
+
+							let column = (<td {...otherProps} key={field.name || 'cell-custom'} className={classnames(cellClasses, className)}></td>)
 							
 							//如果该列传递了childrenNode，直接调用它得到TD的children
 							let columnChildren = childrenNode ? childrenNode(dataItem || {}) : renderChildrenNode(column, children, dataItem || {})
