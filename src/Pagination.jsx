@@ -20,15 +20,14 @@ class Pagination extends React.Component {
 	static displayName = 'PaginationWapper';
 
 	render() {
-		const { ellipsis, boundaryLinks, maxButtons, showTotalText, align, onChangePage, ...otherProps } = this.props
-		//TODO: 是否显示数据总数
+		const { ellipsis, boundaryLinks, maxButtons, showTotalText, align, onChangePage, className, ...otherProps } = this.props
 		const totalPages = getTotalPages(otherProps)
 
 		return totalPages > 1 ? (
 			<div 
 			  {...otherProps}
-			  style={{textAlign: align}}
-			  className='pagination-wapper'>
+			  className={classnames('pagination-wapper', className)}>
+			  {showTotalText ? <span className="total-text">{`共${totalPages}页 / ${otherProps.total}条`}</span> : null}
 				<BootstrapPagination
 				  first
 	        last
