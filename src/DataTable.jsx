@@ -187,7 +187,7 @@ class DataTable extends React.Component {
 		if(selection && selection.clickToSelect === true){
 			let rowIndex = event.currentTarget.rowIndex - 1,
 				rowData = this.state.data[rowIndex],
-				checked = this.state.selectedRows.indexOf(rowData[keyField]) === -1
+				checked = this.state.selectedRows.indexOf(rowData[keyField]) === -1;
 			this.handleToggleInput(rowIndex, checked)
 		}
 	}
@@ -195,7 +195,7 @@ class DataTable extends React.Component {
 	handleCheckInput(event) {
 		let target = event.currentTarget, 
 			checked = target.checked,
-			rowIndex = target.parentElement.parentElement.rowIndex - 1 //tr.rowIndex会把<thead><tr></tr></thead>的行也计算在内
+			rowIndex = target.parentElement.parentElement.rowIndex - 1; //tr.rowIndex会把<thead><tr></tr></thead>的行也计算在内
 			
 		this.handleToggleInput(rowIndex, checked)
 	}
@@ -216,7 +216,7 @@ class DataTable extends React.Component {
 			selectedRows: selectedRows
 		})
 
-		selection.onSelect && selection.onSelect(checked, rowData)
+		selection.onSelect && selection.onSelect(checked, rowData, rowIndex)
 	}
 
 	renderSerialNumberColumn(isHead, cellText) {
@@ -249,7 +249,7 @@ class DataTable extends React.Component {
 				{data.map((item, index) => 
 					<tr className={classnames(rowClasses)} key={'row' + index} onClick={this.handleSelectRow.bind(this)}>
 						{this.renderSelectionColumn(false, item[keyField])}
-						{this.renderSerialNumberColumn(false, ++index)}
+						{this.renderSerialNumberColumn(false, index + 1)}
 						{dataFields.map(field => 
 							field.idField ? null : <td key={field.name || 'cell-custom'} className={field.name ? '' : 'cell-custom'}>{item[field.name] || field.value || ''}</td>
 						)}
@@ -318,10 +318,10 @@ class DataTable extends React.Component {
 
 		return (
 			<tbody>
-				{data.map((dataItem, rowIndex) => 
+				{data.map((rowData, rowIndex) => 
 					<tr className={classnames(rowClasses)} key={'row' + rowIndex} onClick={this.handleSelectRow.bind(this)}>
-						{this.renderSelectionColumn(false, dataItem[keyField])}
-						{this.renderSerialNumberColumn(false, ++rowIndex)}
+						{this.renderSelectionColumn(false, rowData[keyField])}
+						{this.renderSerialNumberColumn(false, rowIndex + 1)}
 						{dataFields.map((field, cellIndex) => {
 							
 							const { children, childrenNode, className, ...otherProps } = cells[cellIndex].props
@@ -340,7 +340,7 @@ class DataTable extends React.Component {
 							let column = (<td {...otherProps} key={field.name || 'cell-custom'} className={classnames(cellClasses, className)}></td>)
 							
 							//如果该列传递了childrenNode，直接调用它得到TD的children
-							let columnChildren = childrenNode ? childrenNode(dataItem || {}) : renderChildrenNode(column, children, dataItem || {})
+							let columnChildren = childrenNode ? childrenNode(rowData || {}, rowIndex) : renderChildrenNode(column, children, rowData || {})
 
 							return cloneElement(column, {children: columnChildren})
 						})}
