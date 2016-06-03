@@ -11,7 +11,7 @@ class DataViewExample extends React.Component {
     super(props)
     this.state = {
       currPage: 1,
-      data: this.getDataForCurrPage(1)
+      data: []
     }
   }
 
@@ -25,7 +25,18 @@ class DataViewExample extends React.Component {
     return data
   }
 
+  componentDidMount() {
+    // 模拟异步数据
+    setTimeout(() => {
+      this.setState({
+        data: this.getDataForCurrPage(1)
+      })
+    }, 500)
+  }
+
   render() {
+
+    const { data } = this.state
 
   	const dataFields = [{
   		idField: true,
@@ -35,15 +46,13 @@ class DataViewExample extends React.Component {
   		text: 'Product'
   	}, {
   		name: 'price',
-  		text: 'Price'
+  		text: () => {return (<span>Price</span>)}
   	}, {
   		name: 'createDate',
-  		text: 'CreateDate',
-  		dataFormat: 'YYYY-MM-DD'
+  		text: 'CreateDate'
   	}, {
-  		text: 'Custom Column',
-  		dataFormat: this.renderCustomColumn.bind(this)
-  	}];
+      text: 'Custom Column'
+    }];
 
 		const rowTemplate = (
 			<tr>
@@ -68,15 +77,15 @@ class DataViewExample extends React.Component {
           striped 
           hover 
           serialNumber 
-          serialNumberHead={'No.'} 
+          serialNumberHead={'No.'}
           dataFields={dataFields} 
-          data={this.state.data} 
+          data={data} 
           rowTemplate={rowTemplate} 
           emptyText={emptyText}
           pagination={{ 
             activePage: this.state.currPage, 
             pageSize: 10, 
-            total: this.state.data.length, 
+            total: data.length, 
             showTotalText: true, 
             maxButtons: 5,
             local: true,

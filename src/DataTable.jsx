@@ -41,7 +41,7 @@ class DataTable extends React.Component {
 			throw 'Error. 属性 {dataFields.idField} 需要设一个值。'
 		}
 
-		if(data.length > 0 && selection && selection.selected){
+		if(data && data.length > 0 && selection && selection.selected){
 
 			switch(selection.mode){
 				case Constants.SELECTION_MODE.SINGLE:
@@ -74,7 +74,8 @@ class DataTable extends React.Component {
 			data: this.store.setPage(currPage).get(),
 			currPage: currPage,
 			selectAll: false,
-			selectedRows: selectedRows
+			selectedRows: selectedRows,
+			pending: false
 		}
 
 		init ? this.state = state : this.setState(state)
@@ -96,8 +97,9 @@ class DataTable extends React.Component {
 	}
 
 	render() {
+		const { wrapperId, wrapperClassName } = this.props
 		return (
-			<div className="data-table-wapper">
+			<div id={wrapperId} className={classnames('data-table-wrapper', wrapperClassName)}>
 				{this.renderDataTable()}
 				{this.renderPagination()}
 			</div>
@@ -105,7 +107,7 @@ class DataTable extends React.Component {
 	}
 
 	renderDataTable() {
-    const {striped, bordered, hover, serialNumber, dataFields, data, rowTemplate, emptyText, pagination, selection, children, ...otherProps} = this.props
+    const {striped, bordered, hover, serialNumber, dataFields, data, rowTemplate, emptyText, pagination, selection, children, className, wrapperId, wrapperClassName, tableWrapperId, tableWrapperClassName, ...otherProps} = this.props
     let classes = {
 			'data-table': true,
       'table': true,
@@ -115,13 +117,14 @@ class DataTable extends React.Component {
     }
 
 		return (
-			<table 
-				{...otherProps}
-				ref="table"
-				className={classnames(classes, this.props.className)}>
-				{this.renderTableHead()}
-				{this.renderTableBody()}
-			</table>
+			<div id={tableWrapperId} className={classnames('table-wrapper', tableWrapperClassName)}>
+				<table 
+					{...otherProps}
+					className={classnames(classes, className)}>
+					{this.renderTableHead()}
+					{this.renderTableBody()}
+				</table>
+			</div>
 		)
 	}
 
@@ -133,9 +136,10 @@ class DataTable extends React.Component {
 				<tr>
 				  {this.renderSelectionColumn(true, 'all')}
 					{this.renderSerialNumberColumn(true, serialNumberHead)}
-					{dataFields.map(field => 
-						field.idField ? null : <th key={field.name || 'cell-custom'} className={field.name ? '' : 'cell-custom'}>{field.text}</th>
-					)}
+					{dataFields.map(field => {
+						let headText = typeof field.text === 'function' ? field.text() : field.text
+						return field.idField ? null : <th key={field.name || 'cell-custom'} className={field.name ? `cell-${field.name.replace('_', '-')}` : 'cell-custom'}>{headText}</th>
+					})}
 				</tr>
 			</thead>
 		)
