@@ -36,10 +36,7 @@
     "react-dom": ">=0.14.0 || <=0.14.8"
   },
   "dependencies": {
-    "classnames": "^2.2.3",
-    "react": "^0.14.5",
-    "react-dom": "^0.14.5",
-    "warning": "^2.1.0"
+    "classnames": "^2.2.3"
   },
   "devDependencies": {
     "babel-core": "^6.3.26",
@@ -75,9 +72,12 @@
     "less": "^2.6.1",
     "less-loader": "^2.2.3",
     "nodemon": "^1.8.1",
+    "react": "^0.14.8",
     "react-bootstrap": "^0.28.5",
+    "react-dom": "^0.14.8",
     "react-transform-hmr": "^1.0.1",
     "rimraf": "^2.5.2",
+    "rt-select": "^1.0.5",
     "style-loader": "^0.13.0",
     "webpack": "^1.12.14"
   }

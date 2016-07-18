@@ -21,10 +21,10 @@ const baseConfig = {
       test: /\.json$/, 
       loader: 'json' 
     }, {
-      test: /\.less$/,
+      test: /\.(css|less)$/,
       loader: ExtractTextPlugin.extract('style', 'css!less')
     }, { 
-      test: /\.(eot|ttf|svg|woff2?)$/, 
+      test: /\.(eot|ttf|svg|woff2?)(\?.*)?$/, 
       loader: 'file?name=fonts/[name].[ext]'
     }]
   },
